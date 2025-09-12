@@ -16,6 +16,7 @@ class Game:
         self.current_round = 1
         self.max_hand_size = rules.MAX_HAND[len(self.players)]
         self.stack_top = 0
+        self.is_game_over = False
 
         self._start_round()
 
@@ -26,46 +27,67 @@ class Game:
                 player.add_card(self.deck.draw())
 
     def play_card(self, card: Card, card2: Optional[Card] = None):
-        if card not in self.current_player.hand:
-            return
-        if card2 not in self.current_player.hand and card2 != None:
-            return
+        if card == card2:
+            raise Exception("Cannot play the same card twice")
 
-        if isinstance(card, Joker) or isinstance(card2, Joker):
-            # implementar
-            return
+        if card not in self.current_player.hand:
+            raise Exception("Card not in hand")
+
+        if card2 not in self.current_player.hand and card2 != None:
+            raise Exception("Second Card not in hand")
+
+        if isinstance(card, Joker):
+            if card.value is None:
+                raise Exception("Joker must have a value when played")
+
+        if isinstance(card2, Joker):
+            if card2.value is None:
+                raise Exception("Joker must have a value when played")
 
         if isinstance(card, Reverse):
             if card2:
-                return
+                raise Exception("Cannot play second card with Reverse")
             self.players.reverse()
 
         if isinstance(card, PassTurn):
             if card2:
-                return
+                raise Exception("Cannot play second card with PassTurn")
             pass
 
-        if isinstance(card, NumberCard):
+        if isinstance(card, NumberCard) or isinstance(card, Joker):
+            if card2:
+                if not isinstance(card2, NumberCard) and not isinstance(card2, Joker):
+                    raise Exception("Second card must be NumberCard or Joker")
+
             value = card.value
             if card2:
-                if not isinstance(card, NumberCard):
-                    return
-
                 if card.value != card2.value:
-                    return
+                    raise Exception(
+                        "Both cards must have the same value when played together"
+                    )
 
                 value = card.value + card2.value
 
             if value < self.stack_top:
-                return
+                raise Exception("Card value must be greater than or equal to stack top")
             if value == self.stack_top:
                 self.stack_top *= 2
             else:
                 self.stack_top = value
 
+        if isinstance(card, Joker):
+            card.value = None
+
+        if isinstance(card2, Joker):
+            card2.value = None
+
         self.current_player.played_turn = True
         self.current_player.remove_card(card)
         self.stack.append(card)
+
+        if card2:
+            self.current_player.remove_card(card2)
+            self.stack.append(card2)
 
         if self.current_player.hand:
             self.end_turn()
@@ -95,6 +117,8 @@ class Game:
         self.current_player = self.players[new_index]
 
     def _end_round(self):
+        self._calculate_player_score()
+
         if self.current_round == rules.MAX_ROUND:
             self._end_game()
             return
@@ -103,7 +127,6 @@ class Game:
         self.deck.extend(self.stack)
         self.stack = []
 
-        self._calculate_player_score()
         for player in self.players:
             self.deck.extend(player.hand)
             self.deck.extend(player.stack)
@@ -125,9 +148,7 @@ class Game:
         self.current_player.stack.extend(self.stack)
         self.stack = []
 
-    def _draw(self):
-        drawn_card = self.deck.draw()
-        self.current_player.hand.append(drawn_card)
-
     def _end_game(self):
-        return
+        winner = max(self.players, key=lambda player: player.score)
+        print(f"Game over! The winner is {winner.name} with a score of {winner.score}")
+        self.is_game_over = True
