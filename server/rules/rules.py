@@ -15,7 +15,7 @@ NUMBERED_CARDS: List[Tuple[int, int]] = [
     (12, 3),
 ]
 SPECIAL_CARDS: List[Tuple[Card, int]] = [
-    (Joker, 0),
+    (Joker, 3),
     (PassTurn, 2),
     (Reverse, 2),
 ]

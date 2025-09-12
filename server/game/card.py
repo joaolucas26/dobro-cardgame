@@ -8,9 +8,6 @@ class Joker(Card):
         super().__init__("Joker")
         self.value = None
 
-    def set_value(self, value):
-        self.value = value
-
 
 class PassTurn(Card):
     def __init__(self):

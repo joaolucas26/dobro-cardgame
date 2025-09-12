@@ -6,7 +6,6 @@ class Player:
         self.name: str = name
         self.hand: list[Card] = []
         self.stack: list[Card] = []
-        self.max_hand = 6
         self.score = 0
         self.played_turn: bool = False
 
