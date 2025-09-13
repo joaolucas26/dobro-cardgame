@@ -1,5 +1,5 @@
-from server.game.deck import Deck
-from server.game.card import Card, Joker, PassTurn, Reverse, NumberCard
+from game.deck import Deck
+from game.card import Card, Joker, PassTurn, Reverse, NumberCard
 
 
 def test_create_deck():

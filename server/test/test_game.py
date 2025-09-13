@@ -1,8 +1,8 @@
 import pytest
-from server.game.game import Game
-from server.game.player import Player
-from server.game.deck import Deck
-from server.game.card import Card, NumberCard, Reverse, PassTurn, Joker
+from game.game import Game
+from game.player import Player
+from game.deck import Deck
+from game.card import Card, NumberCard, Reverse, PassTurn, Joker
 
 
 def test_game_initialization():

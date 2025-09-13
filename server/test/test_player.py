@@ -1,5 +1,5 @@
-from server.game.player import Player
-from server.game.card import NumberCard
+from game.player import Player
+from game.card import NumberCard
 
 
 def test_player_initialization():
