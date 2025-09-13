@@ -1,4 +1,4 @@
-from server.game.card import Card
+from game.card import Card
 
 
 class Player:
@@ -8,6 +8,7 @@ class Player:
         self.stack: list[Card] = []
         self.score = 0
         self.played_turn: bool = False
+        self.is_ready: bool = False
 
     def add_card(self, card: Card):
         self.hand.append(card)
