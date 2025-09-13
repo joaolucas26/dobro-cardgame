@@ -1,7 +1,7 @@
 import random
 
-from server.game.card import NumberCard
-import server.rules.rules as rules
+from game.card import NumberCard
+import game.rules as rules
 
 
 class Deck:
