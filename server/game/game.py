@@ -1,10 +1,10 @@
-from server.game.deck import Deck
-from server.game.player import Player
-from server.game.card import Card, Joker, PassTurn, Reverse, NumberCard
-import server.rules.rules as rules
-
-
 from typing import List, Optional
+
+
+from game.deck import Deck
+from game.player import Player
+from game.card import Card, Joker, PassTurn, Reverse, NumberCard
+import game.rules as rules
 
 
 class Game:
@@ -17,6 +17,9 @@ class Game:
         self.max_hand_size = rules.MAX_HAND[len(self.players)]
         self.stack_top = 0
         self.is_game_over = False
+        self.is_reversed = False
+        self.logs = []
+        self.is_paused = False
 
         self._start_round()
 
@@ -48,6 +51,7 @@ class Game:
             if card2:
                 raise Exception("Cannot play second card with Reverse")
             self.players.reverse()
+            self.is_reversed = not self.is_reversed
 
         if isinstance(card, PassTurn):
             if card2:
@@ -75,6 +79,16 @@ class Game:
             else:
                 self.stack_top = value
 
+        if card2:
+            self._logging(
+                f"Player {self.current_player.name} played card {card.name} and {card2.name}",
+            )
+
+        else:
+            self._logging(
+                f"Player {self.current_player.name} played card {card.name}",
+            )
+
         if isinstance(card, Joker):
             card.value = None
 
@@ -83,11 +97,11 @@ class Game:
 
         self.current_player.played_turn = True
         self.current_player.remove_card(card)
-        self.stack.append(card)
+        self.stack.insert(0, card)
 
         if card2:
             self.current_player.remove_card(card2)
-            self.stack.append(card2)
+            self.stack.insert(0, card2)
 
         if self.current_player.hand:
             self.end_turn()
@@ -95,12 +109,10 @@ class Game:
             self._end_round()
 
     def end_turn(self):
+        self._logging(f"Player {self.current_player.name} Ended Turn")
+
         if not self.current_player.played_turn:
             self._draw_stack()
-
-        if not self.deck.cards:
-            self._end_round()
-            return
 
         current_player_hand_size = len(self.current_player.hand)
 
@@ -109,15 +121,17 @@ class Game:
                 break
             self.current_player.add_card(self.deck.draw())
 
-        current_player_index = self.players.index(self.current_player)
-        new_index = current_player_index + 1
-        if new_index >= len(self.players):
-            new_index = 0
-        self.current_player.played_turn = False
-        self.current_player = self.players[new_index]
+        if self.current_player.played_turn:
+            current_player_index = self.players.index(self.current_player)
+            new_index = current_player_index + 1
+            if new_index >= len(self.players):
+                new_index = 0
+            self.current_player.played_turn = False
+            self.current_player = self.players[new_index]
 
     def _end_round(self):
         self._calculate_player_score()
+        self._logging(f"Round {self.current_round} Ended")
 
         if self.current_round == rules.MAX_ROUND:
             self._end_game()
@@ -147,8 +161,12 @@ class Game:
     def _draw_stack(self):
         self.current_player.stack.extend(self.stack)
         self.stack = []
+        self.stack_top = 0
 
     def _end_game(self):
         winner = max(self.players, key=lambda player: player.score)
         print(f"Game over! The winner is {winner.name} with a score of {winner.score}")
         self.is_game_over = True
+
+    def _logging(self, message):
+        self.logs.insert(0, message)
