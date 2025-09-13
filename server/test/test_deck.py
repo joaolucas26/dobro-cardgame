@@ -3,7 +3,7 @@ from game.card import Card, Joker, PassTurn, Reverse, NumberCard
 
 
 def test_create_deck():
-    deck = Deck()
+    deck = Deck(3)
     assert len([card for card in deck.cards if isinstance(card, Joker)]) == 3
     assert len([card for card in deck.cards if isinstance(card, PassTurn)]) == 2
     assert len([card for card in deck.cards if isinstance(card, Reverse)]) == 2
@@ -23,8 +23,14 @@ def test_create_deck():
     assert len([card for card in numbered_cards if card.value == 12]) == 3
 
 
+def test_create_deck_two_players():
+    deck = Deck(2)
+    assert len([card for card in deck.cards if isinstance(card, Reverse)]) == 0
+    assert len([card for card in deck.cards if isinstance(card, NumberCard)]) == 40
+
+
 def test_extend():
-    deck = Deck()
+    deck = Deck(3)
     initial_length = len(deck.cards)
     card1 = Card("Test1")
     card2 = Card("Test2")
@@ -36,7 +42,7 @@ def test_extend():
 
 
 def test_draw():
-    deck = Deck()
+    deck = Deck(3)
     initial_length = len(deck.cards)
     top_card = deck.cards[0]
     card = deck.draw()

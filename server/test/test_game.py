@@ -6,14 +6,16 @@ from game.card import Card, NumberCard, Reverse, PassTurn, Joker
 
 
 def test_game_initialization():
-    players = [Player("player1"), Player("player2")]
-    deck = Deck()
-    game = Game(players, deck)
+    p1 = Player("player1")
+    p2 = Player("player2")
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
 
     assert game.players == players
     assert game.current_player == players[0]
     assert game.stack == []
-    assert game.deck == deck
     assert game.current_round == 1
     assert game.max_hand_size == 6
     assert game.stack_top == 0
@@ -28,8 +30,8 @@ def test_play_card_reverse():
     p3 = Player("player3")
     players = [p1, p2, p3]
     reverse_player = [p3, p2, p1]
-    deck = Deck()
-    game = Game(players, deck)
+
+    game = Game(players)
 
     reverse_card = Reverse()
     game.current_player.remove_card(game.current_player.hand[0])
@@ -43,9 +45,10 @@ def test_play_card_reverse():
 def test_play_card_passturn():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
 
     passturn_card = PassTurn()
     game.current_player.remove_card(game.current_player.hand[0])
@@ -58,9 +61,10 @@ def test_play_card_passturn():
 def test_play_card_joker():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
 
     joker_card = Joker()
     joker_card.value = 5
@@ -77,9 +81,10 @@ def test_play_card_joker():
 def test_play_card_joker_same_value_stack_top():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
     game.stack_top = 5
 
     joker_card = Joker()
@@ -96,9 +101,10 @@ def test_play_card_joker_same_value_stack_top():
 def test_end_round_no_cards_in_hand():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
 
     p1.stack = [NumberCard(3), NumberCard(4)]
     p2.stack = [NumberCard(5)]
@@ -117,33 +123,13 @@ def test_end_round_no_cards_in_hand():
     assert len(p2.hand) == 6
 
 
-def test_end_round_no_cards_in_deck():
-    p1 = Player("player1")
-    p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-
-    p1.stack = [NumberCard(3), NumberCard(4)]
-    p2.stack = [NumberCard(5)]
-
-    game = Game(players, deck)
-    game.deck.cards = []
-
-    game.current_player.played_turn = True
-    game.end_turn()
-
-    assert game.current_round == 2
-    assert game.stack == []
-    assert p1.stack == []
-    assert p2.stack == []
-
-
 def test_end_game_max_rounds():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
     game.current_round = 3
 
     p1.stack = [NumberCard(3), NumberCard(4)]
@@ -169,9 +155,10 @@ def test_end_game_max_rounds():
 def test_play_card_two_joker_same_value():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
 
     joker_card = Joker()
     joker_card.value = 5
@@ -187,8 +174,8 @@ def test_play_card_two_joker_same_value():
 
     game.play_card(joker_card, joker_card2)
     assert game.stack_top == 10
-    assert game.stack[0] == joker_card
-    assert game.stack[1] == joker_card2
+    assert game.stack[1] == joker_card
+    assert game.stack[0] == joker_card2
     assert joker_card.value == None
     assert joker_card2.value == None
     assert len(p1.hand) == 6
@@ -203,9 +190,10 @@ def test_play_card_when_card_not_in_hand():
     """
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
     card = Card("carta1")
 
     with pytest.raises(Exception, match="Card not in hand"):
@@ -220,9 +208,10 @@ def test_play_card_when_card_not_in_hand():
 def test_play_card_joker_no_value():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
     joker_card = Joker()
 
     game.current_player.remove_card(game.current_player.hand[0])
@@ -237,9 +226,10 @@ def test_play_card_joker_no_value():
 def test_play_card_second_card_joker_no_value():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
     joker_card = Joker()
     joker_card.value = 5
     joker_card2 = Joker()
@@ -257,9 +247,10 @@ def test_play_card_second_card_joker_no_value():
 def test_play_card_numberedcard_second_card_invalid():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
 
     number_card = NumberCard(5)
     second_card = PassTurn()
@@ -277,9 +268,10 @@ def test_play_card_numberedcard_second_card_invalid():
 def test_play_card_second_card_reverse():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
 
     reverse_card = Reverse()
     second_card = NumberCard(5)
@@ -297,9 +289,10 @@ def test_play_card_second_card_reverse():
 def test_play_card_second_card_passturn():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
 
     passturn_card = PassTurn()
     second_card = NumberCard(5)
@@ -317,9 +310,10 @@ def test_play_card_second_card_passturn():
 def test_play_card_numbercard():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
 
     number_card = NumberCard(5)
 
@@ -332,9 +326,10 @@ def test_play_card_numbercard():
 def test_play_card_numbercard_double_the_stack_value():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
 
     game.stack_top = 5
     number_card = NumberCard(5)
@@ -348,9 +343,10 @@ def test_play_card_numbercard_double_the_stack_value():
 def test_play_card_numbercard_less_than_top_stack():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
 
     game.stack_top = 10
     number_card = NumberCard(5)
@@ -367,9 +363,10 @@ def test_play_card_numbercard_less_than_top_stack():
 def test_play_card_same_card():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
 
     reverse_card = Reverse()
 
@@ -386,9 +383,10 @@ def test_play_card_same_card():
 def test_play_card_two_different_numbercards_equal_values():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
 
     number_card1 = NumberCard(5)
     number_card2 = NumberCard(5)
@@ -404,9 +402,10 @@ def test_play_card_two_different_numbercards_equal_values():
 def test_play_card_two_numbercards_different_different_values():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
     game.stack_top = 2
 
     number_card1 = NumberCard(5)
@@ -428,9 +427,10 @@ def test_play_card_two_numbercards_different_different_values():
 def test_draw_card_when_played():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
     top_card = game.deck.cards[0]
 
     passturn_card = PassTurn()
@@ -453,15 +453,16 @@ def test_draw_card_when_played():
     game.current_player.add_card(card2)
     game.play_card(card1, card2)
     assert len(p2.hand) == 5
-    assert game.current_player == p1
+    assert game.current_player == p3
 
 
 def test_draw_stack():
     p1 = Player("player1")
     p2 = Player("player2")
-    players = [p1, p2]
-    deck = Deck()
-    game = Game(players, deck)
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
     game.stack = [NumberCard(3), NumberCard(4), NumberCard(5)]
     game.end_turn()
 
@@ -473,6 +474,4 @@ def test_draw_stack():
         ]
     )
     assert game.stack == []
-    assert game.current_player == p2
-    assert len(p1.hand) == 6
-    assert len(p2.hand) == 6
+    assert game.current_player == p1

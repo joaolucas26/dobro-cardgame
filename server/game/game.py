@@ -1,4 +1,6 @@
 from typing import List, Optional
+from datetime import datetime
+import random
 
 
 from game.deck import Deck
@@ -8,11 +10,11 @@ import game.rules as rules
 
 
 class Game:
-    def __init__(self, players: List[Player], deck: Deck):
+    def __init__(self, players: List[Player]):
         self.players = players
         self.current_player = self.players[0]
         self.stack: List[Card] = []
-        self.deck = deck
+        self.deck = []
         self.current_round = 1
         self.max_hand_size = rules.MAX_HAND[len(self.players)]
         self.stack_top = 0
@@ -24,6 +26,8 @@ class Game:
         self._start_round()
 
     def _start_round(self):
+        new_deck = Deck(len(self.players))
+        self.deck = new_deck
         self.deck.shuffle()
         for _ in range(self.max_hand_size):
             for player in self.players:
@@ -169,4 +173,6 @@ class Game:
         self.is_game_over = True
 
     def _logging(self, message):
+        log_time = datetime.now()
+        message = f"{log_time.hour}:{log_time.minute} - {message}"
         self.logs.insert(0, message)

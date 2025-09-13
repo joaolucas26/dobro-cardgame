@@ -6,7 +6,6 @@ import random
 
 from game.player import Player
 from game.game import Game
-from game.deck import Deck
 from game.card import Joker
 from game.rules import MIN_PLAYERS, MAX_PLAYERS
 from payloads import (
@@ -70,8 +69,7 @@ async def handler(websocket):
                         if len(GLOBAL["clients"]) >= MIN_PLAYERS:
                             if all(c["player"].is_ready for c in GLOBAL["clients"]):
                                 players = [c["player"] for c in GLOBAL["clients"]]
-                                deck = Deck()
-                                GLOBAL["game"] = Game(players, deck)
+                                GLOBAL["game"] = Game(players)
                                 await send_update_game_status()
 
                     await send_update_room()
@@ -106,6 +104,10 @@ async def handler(websocket):
 
                 if message["type"] == "END_TURN":
                     GLOBAL["game"].end_turn()
+                    await send_update_game_status()
+
+                if message["type"] == "PAUSE_GAME":
+                    GLOBAL["game"].is_paused = not GLOBAL["game"].is_paused
                     await send_update_game_status()
 
             except Exception as e:
