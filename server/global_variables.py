@@ -1,0 +1,1 @@
+GLOBAL = {"game": None, "clients": []}
