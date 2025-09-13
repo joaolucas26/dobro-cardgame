@@ -3,18 +3,17 @@ import websockets
 import json
 import random
 
-
 from game.player import Player
 from game.game import Game
 from game.card import Joker
 from game.rules import MIN_PLAYERS, MAX_PLAYERS
-from payloads import (
+from utils.payloads import (
     send_update_room,
     send_update_game_status,
     send_error_message,
 )
 from global_variables import GLOBAL
-from names import names
+from utils.player_names_generator import generate_player_name
 
 
 async def handler(websocket):
@@ -45,7 +44,7 @@ async def handler(websocket):
             return
 
     else:
-        player = Player(random.choice(names))
+        player = Player(generate_player_name())
         GLOBAL["clients"].append({"websocket": websocket, "player": player})
         for client in GLOBAL["clients"]:
             client["player"].is_ready = False
