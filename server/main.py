@@ -134,9 +134,7 @@ async def handler(websocket):
                     await send_update_game_status()
 
             except Exception as e:
-                # print(e)
                 await send_error_message(str(e), player)
-                # raise e
 
     except websockets.exceptions.ConnectionClosedOK:
         print(f"Client {websocket.remote_address} disconnected gracefully.")

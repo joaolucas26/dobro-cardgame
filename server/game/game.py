@@ -77,7 +77,7 @@ class Game:
                         "A segunda carta deve ser um número ou um Joker!"
                     )
 
-                if card2.value < 2 and card2.value > 12:
+                if card2.value < 2 or card2.value > 12:
                     return False, Exception(
                         "Não é possivel jogar um valor pro joker menor que 2 ou maior que 12!"
                     )
@@ -97,7 +97,7 @@ class Game:
                     "O valor da carta deve ser maior ou igual ao do topo da pilha!"
                 )
 
-            if card.value < 2 and card.value > 12:
+            if card.value < 2 or card.value > 12:
                 return False, Exception(
                     "Não é possivel jogar um valor pro joker menor que 2 ou maior que 12!"
                 )
@@ -174,9 +174,7 @@ class Game:
             )
 
         player.add_card(self.deck.draw())
-        if not self.deck.cards:
-            player.has_drew_card = True
-        if self.max_hand_size == len(player.hand):
+        if not self.deck.cards or self.max_hand_size == len(player.hand):
             player.has_drew_card = True
         else:
             player.has_drew_card = False
