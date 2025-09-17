@@ -1,4 +1,5 @@
 from game.card import Card
+import random
 
 
 class Player:
@@ -9,6 +10,8 @@ class Player:
         self.score = 0
         self.played_turn: bool = False
         self.is_ready: bool = False
+        self.is_punished: bool = False
+        self.has_drew_card = False
 
     def add_card(self, card: Card):
         self.hand.append(card)

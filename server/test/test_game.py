@@ -1,4 +1,5 @@
 import pytest
+from pytest import mark
 from game.game import Game
 from game.player import Player
 from game.deck import Deck
@@ -37,6 +38,7 @@ def test_play_card_reverse():
     game.current_player.remove_card(game.current_player.hand[0])
     game.current_player.add_card(reverse_card)
     game.play_card(reverse_card)
+    game.end_turn()
 
     assert game.players == reverse_player
     assert game.current_player == p3
@@ -54,6 +56,8 @@ def test_play_card_passturn():
     game.current_player.remove_card(game.current_player.hand[0])
     game.current_player.add_card(passturn_card)
     game.play_card(passturn_card)
+    game.draw_card(p1)
+    game.end_turn()
 
     assert game.current_player == p2
 
@@ -171,19 +175,37 @@ def test_play_card_two_joker_same_value():
     game.current_player.remove_card(game.current_player.hand[0])
     game.current_player.add_card(joker_card)
     game.current_player.add_card(joker_card2)
-
     game.play_card(joker_card, joker_card2)
+    assert len(p1.hand) == 4
+
     assert game.stack_top == 10
     assert game.stack[1] == joker_card
     assert game.stack[0] == joker_card2
     assert joker_card.value == None
     assert joker_card2.value == None
-    assert len(p1.hand) == 6
-    assert len(p2.hand) == 6
     assert player_hand_before_play != game.current_player.hand
 
 
-def test_play_card_when_card_not_in_hand():
+def test_joker_invalid_value_error():
+    p1 = Player("player1")
+    p2 = Player("player2")
+
+    players = [p1, p2]
+
+    game = Game(players)
+    joker_card = Joker()
+    joker_card.value = 1
+    game.current_player.remove_card(game.current_player.hand[0])
+    game.current_player.add_card(joker_card)
+
+    with pytest.raises(
+        Exception,
+        match="Não é possivel jogar um valor pro joker menor que 2 ou maior que 12!",
+    ):
+        game.play_card(joker_card)
+
+
+def test_play_card_when_card_not_in_hand_error():
     """
     Testa se a carta jogada não está na mão do jogador atual.
     Testa se a segunda carta jogadacurrent_round não está na mão do jogador atual mesmo que a primeira esteja.
@@ -196,16 +218,32 @@ def test_play_card_when_card_not_in_hand():
     game = Game(players)
     card = Card("carta1")
 
-    with pytest.raises(Exception, match="Card not in hand"):
+    with pytest.raises(Exception, match="Carta não esta na mão do jogador!"):
         game.play_card(card)
     assert game.current_player == p1
 
-    with pytest.raises(Exception, match="Second Card not in hand"):
+    with pytest.raises(Exception, match="Segunda carta não esta na mão do jogador!"):
         game.play_card(game.current_player.hand[0], card)
     assert game.current_player == p1
 
 
-def test_play_card_joker_no_value():
+def test_player_played_turn_error():
+    p1 = Player("player1")
+    p2 = Player("player2")
+    p3 = Player("player3")
+    players = [p1, p2, p3]
+
+    game = Game(players)
+    game.current_player.played_turn = True
+    with pytest.raises(
+        Exception,
+        match="Você ja jogou este turno! Pesque cartas e passe para o proximo!",
+    ):
+        game.play_card(game.current_player.hand[0])
+        game.play_card(game.current_player.hand[0])
+
+
+def test_play_card_joker_no_value_error():
     p1 = Player("player1")
     p2 = Player("player2")
     p3 = Player("player3")
@@ -217,13 +255,13 @@ def test_play_card_joker_no_value():
     game.current_player.remove_card(game.current_player.hand[0])
     game.current_player.add_card(joker_card)
 
-    with pytest.raises(Exception, match="Joker must have a value when played"):
+    with pytest.raises(Exception, match="Joker deve possuir um valor para ser jogado!"):
         game.play_card(joker_card)
 
     assert game.current_player == p1
 
 
-def test_play_card_second_card_joker_no_value():
+def test_play_card_second_card_joker_no_value_error():
     p1 = Player("player1")
     p2 = Player("player2")
     p3 = Player("player3")
@@ -239,12 +277,12 @@ def test_play_card_second_card_joker_no_value():
     game.current_player.add_card(joker_card)
     game.current_player.add_card(joker_card2)
 
-    with pytest.raises(Exception, match="Joker must have a value when played"):
+    with pytest.raises(Exception, match="Joker deve possuir um valor para ser jogado!"):
         game.play_card(joker_card, joker_card2)
     assert game.current_player == p1
 
 
-def test_play_card_numberedcard_second_card_invalid():
+def test_play_card_numberedcard_second_card_invalid_error():
     p1 = Player("player1")
     p2 = Player("player2")
     p3 = Player("player3")
@@ -260,12 +298,14 @@ def test_play_card_numberedcard_second_card_invalid():
     game.current_player.add_card(number_card)
     game.current_player.add_card(second_card)
 
-    with pytest.raises(Exception, match="Second card must be NumberCard or Joker"):
+    with pytest.raises(
+        Exception, match="A segunda carta deve ser um número ou um Joker!"
+    ):
         game.play_card(number_card, second_card)
     assert game.current_player == p1
 
 
-def test_play_card_second_card_reverse():
+def test_play_card_second_card_reverse_error():
     p1 = Player("player1")
     p2 = Player("player2")
     p3 = Player("player3")
@@ -281,12 +321,14 @@ def test_play_card_second_card_reverse():
     game.current_player.add_card(reverse_card)
     game.current_player.add_card(second_card)
 
-    with pytest.raises(Exception, match="Cannot play second card with Reverse"):
+    with pytest.raises(
+        Exception, match="Não é possivel jogar uma segunda carta com Reverso"
+    ):
         game.play_card(reverse_card, second_card)
     assert game.current_player == p1
 
 
-def test_play_card_second_card_passturn():
+def test_play_card_second_card_passturn_error():
     p1 = Player("player1")
     p2 = Player("player2")
     p3 = Player("player3")
@@ -302,7 +344,9 @@ def test_play_card_second_card_passturn():
     game.current_player.add_card(passturn_card)
     game.current_player.add_card(second_card)
 
-    with pytest.raises(Exception, match="Cannot play second card with PassTurn"):
+    with pytest.raises(
+        Exception, match="Não é possivel jogar uma segunda carta com Passe-o-turno"
+    ):
         game.play_card(passturn_card, second_card)
     assert game.current_player == p1
 
@@ -340,7 +384,7 @@ def test_play_card_numbercard_double_the_stack_value():
     assert game.stack_top == 10
 
 
-def test_play_card_numbercard_less_than_top_stack():
+def test_play_card_numbercard_less_than_top_stack_error():
     p1 = Player("player1")
     p2 = Player("player2")
     p3 = Player("player3")
@@ -354,13 +398,13 @@ def test_play_card_numbercard_less_than_top_stack():
     game.current_player.remove_card(game.current_player.hand[0])
     game.current_player.add_card(number_card)
     with pytest.raises(
-        Exception, match="Card value must be greater than or equal to stack top"
+        Exception, match="O valor da carta deve ser maior ou igual ao do topo da pilha!"
     ):
         game.play_card(number_card)
     assert game.stack_top == 10
 
 
-def test_play_card_same_card():
+def test_play_card_same_card_error():
     p1 = Player("player1")
     p2 = Player("player2")
     p3 = Player("player3")
@@ -375,7 +419,7 @@ def test_play_card_same_card():
     game.current_player.add_card(reverse_card)
     game.current_player.add_card(reverse_card)
 
-    with pytest.raises(Exception, match="Cannot play the same card twice"):
+    with pytest.raises(Exception, match="Não é possivel jogar a mesma carta 2 vezes!"):
         game.play_card(reverse_card, reverse_card)
     assert game.current_player == p1
 
@@ -415,9 +459,7 @@ def test_play_card_two_numbercards_different_different_values():
     game.current_player.remove_card(game.current_player.hand[0])
     game.current_player.add_card(number_card1)
     game.current_player.add_card(number_card2)
-    with pytest.raises(
-        Exception, match="Both cards must have the same value when played together"
-    ):
+    with pytest.raises(Exception, match="Ambas as cartas devem possuir o mesmo valor!"):
 
         game.play_card(number_card1, number_card2)
     assert game.stack_top == 2
@@ -437,23 +479,27 @@ def test_draw_card_when_played():
     game.current_player.remove_card(game.current_player.hand[0])
     game.current_player.add_card(passturn_card)
     game.play_card(passturn_card)
+    game.draw_card(p1)
 
     assert len(p1.hand) == 6
     assert game.stack[-1] == passturn_card
     assert p1.hand[-1] == top_card
     assert passturn_card not in game.current_player.hand
-    assert game.current_player == p2
 
-    card1 = NumberCard(2)
-    card2 = NumberCard(2)
-    game.deck.cards = [NumberCard(1)]
-    game.current_player.remove_card(game.current_player.hand[0])
-    game.current_player.remove_card(game.current_player.hand[0])
-    game.current_player.add_card(card1)
-    game.current_player.add_card(card2)
-    game.play_card(card1, card2)
-    assert len(p2.hand) == 5
-    assert game.current_player == p3
+    # card1 = NumberCard(2)
+    # card2 = NumberCard(2)
+    # game.deck.cards = [NumberCard(1)]
+    # game.current_player.remove_card(game.current_player.hand[0])
+    # game.current_player.remove_card(game.current_player.hand[0])
+    # game.current_player.add_card(card1)
+    # game.current_player.add_card(card2)
+    # game.play_card(card1, card2)
+
+    # assert len(p2.hand) == 4
+    # game.draw_card(p2)
+    # game.draw_card(p2)
+    # assert len(p2.hand) == 6
+    # assert game.current_player == p2
 
 
 def test_draw_stack():

@@ -5,7 +5,7 @@ import json
 from global_variables import GLOBAL
 
 
-async def send_to_all(message):
+async def _send_to_all(message):
     await asyncio.gather(
         *[
             client["websocket"].send(json.dumps(message(client["player"])))
@@ -15,18 +15,15 @@ async def send_to_all(message):
     )
 
 
-async def send_message_to_player(message, player):
-    await asyncio.gather(
-        *[
-            client["websocket"].send(json.dumps(message(client["player"])))
-            for client in GLOBAL["clients"]
-            if client["player"] == player
-        ]
-    )
+async def _send_message_to_player(message, player):
+    for client in GLOBAL["clients"]:
+        if client["player"] == player:
+            await client["websocket"].send(json.dumps(message))
+            break
 
 
 async def send_update_room():
-    await send_to_all(
+    await _send_to_all(
         lambda p: {
             "type": "update_room",
             "players": [
@@ -62,11 +59,14 @@ async def send_update_game_status():
             "stack": [card.name for card in client["player"].stack],
             "score": client["player"].score,
             "is_current": client["player"] == GLOBAL["game"].current_player,
+            "is_punished": client["player"].is_punished,
+            "has_drew_card": client["player"].has_drew_card,
+            "is_ready": client["player"].is_ready,
         }
         for client in GLOBAL["clients"]
     ]
 
-    await send_to_all(
+    await _send_to_all(
         lambda p: {
             "type": "update_game",
             "name": p.name,
@@ -75,6 +75,8 @@ async def send_update_game_status():
             "score": p.score,
             "stack": [card.name for card in p.stack],
             "is_current": p == GLOBAL["game"].current_player,
+            "is_punished": p.is_punished,
+            "has_drew_card": p.has_drew_card,
             "players": [
                 player_data
                 for player_data in players_data
@@ -85,13 +87,6 @@ async def send_update_game_status():
     )
 
 
-async def send_message_to_player(message, player):
-    for client in GLOBAL["clients"]:
-        if client["player"] == player:
-            await client["websocket"].send(json.dumps(message))
-            break
-
-
 async def send_error_message(e, player):
     message = {"type": "error", "message": e}
-    await send_message_to_player(message, player)
+    await _send_message_to_player(message, player)
