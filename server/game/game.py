@@ -110,6 +110,7 @@ class Game:
             raise error
 
         self.current_player.has_drew_card = False
+        self.current_player.ended_turn = False
 
         if isinstance(card, Reverse):
             self.players.reverse()
@@ -149,6 +150,7 @@ class Game:
             self._end_round()
 
     def end_turn(self):
+        self.current_player.ended_turn = True
         self._logging(f"Jogador {self.current_player.name} Encerrou o turno")
         if not self.current_player.played_turn:
             self._logging(
@@ -181,10 +183,12 @@ class Game:
 
         self._logging(f"Jogador {player.name} pescou uma carta!")
 
-    def punish_player(self, player_punished):
+    def punish_player(self, player_punished, player_accusation):
+        if not player_punished.ended_turn:
+            raise Exception("O jogador acusado ainda não terminou o turno!")
         if player_punished.has_drew_card:
             raise Exception("O jogador não pode ser punido. Sua mão esta completa!")
-        if player_punished == self.current_player:
+        if player_punished == player_accusation:
             raise Exception("Não é possivel punir a si mesmo!")
         if player_punished.is_punished:
             raise Exception("Jogador já foi punido!")
