@@ -1,168 +1,256 @@
 import asyncio
 import websockets
 import json
-import random
 
 from game.player import Player
 from game.game import Game
 from game.card import Joker
 from game.rules import MIN_PLAYERS, MAX_PLAYERS, NOT_YOUR_TURN_EVENT_LIST
 from utils.payloads import (
-    send_update_room,
-    send_update_game_status,
-    send_error_message,
+    create_room_update_payload,
+    create_game_status_payload,
+    create_error_payload,
 )
-from global_variables import GLOBAL
 from utils.player_names_generator import generate_player_name
 
 
-async def handler(websocket):
-    player = None
-    connected_clients = [x for x in GLOBAL["clients"] if x["websocket"] != None]
-    disconnected_clients = [x for x in GLOBAL["clients"] if x["websocket"] == None]
+class GameManager:
+    """Manages the state and logic of a single game room."""
 
-    if len(connected_clients) >= MAX_PLAYERS:
-        response = {
-            "type": "error",
-            "message": "Jogo já esta cheio! Tente novamente mais tarde.",
-        }
-        await websocket.send(json.dumps(response))
-        await websocket.close()
-        return
+    def __init__(self):
+        self.clients = []  # List of {'websocket': ws, 'player': player_obj}
+        self.game: Game | None = None
 
-    if GLOBAL["game"]:
-        if disconnected_clients:
-            disconnected_clients[0]["websocket"] = websocket
-            player = disconnected_clients[0]["player"]
-            all_player_reconnected = [
-                x for x in GLOBAL["clients"] if x["websocket"] == None
-            ] == []
+    @property
+    def connected_clients(self):
+        return [c for c in self.clients if c["websocket"] is not None]
 
-            if all_player_reconnected:
-                GLOBAL["game"].is_paused = False
+    @property
+    def disconnected_clients(self):
+        return [c for c in self.clients if c["websocket"] is None]
 
-            await send_update_game_status()
-
-        else:
-            response = {
-                "type": "error",
-                "message": "Jogo já iniciou! Tente novamente mais tarde!",
-            }
-            await websocket.send(json.dumps(response))
+    async def handle_connection(self, websocket):
+        """Handles a new client connection, either as a new player or a reconnection."""
+        if len(self.connected_clients) >= MAX_PLAYERS and not self.disconnected_clients:
+            payload = create_error_payload(
+                "Jogo já esta cheio! Tente novamente mais tarde."
+            )
+            await self.send(websocket, payload)
             await websocket.close()
+            return None
+
+        if self.game and self.disconnected_clients:
+            player = self._reconnect_player(websocket)
+            await self.broadcast_game_state()
+            return player
+
+        if self.game:
+            payload = create_error_payload(
+                "Jogo já iniciou! Tente novamente mais tarde!"
+            )
+            await self.send(websocket, payload)
+            await websocket.close()
+            return None
+
+        player = self._add_new_player(websocket)
+        await self.broadcast_room_update()
+        return player
+
+    def _reconnect_player(self, websocket):
+        client_to_reconnect = self.disconnected_clients[0]
+        client_to_reconnect["websocket"] = websocket
+        player = client_to_reconnect["player"]
+
+        if not self.disconnected_clients:
+            self.game.is_paused = False
+        return player
+
+    def _add_new_player(self, websocket):
+        player = Player(generate_player_name())
+        self.clients.append({"websocket": websocket, "player": player})
+        return player
+
+    async def handle_disconnection(self, websocket):
+        """Handles a client disconnection."""
+        client = self.find_client_by_ws(websocket)
+        if not client:
             return
 
-    else:
-        player = Player(generate_player_name())
-        GLOBAL["clients"].append({"websocket": websocket, "player": player})
-        for client in GLOBAL["clients"]:
-            client["player"].is_ready = False
-        await send_update_room()
+        # Set websocket to None to mark as disconnected
+        client["websocket"] = None
+
+        if self.game:
+            # If all players disconnect, end the game
+            if not self.connected_clients:
+                self.reset_game()
+            else:
+                self.game.is_paused = True
+                await self.broadcast_game_state()
+        else:
+            # If not in a game, just remove the client entirely
+            self.clients.remove(client)
+            await self.broadcast_room_update()
+
+    def find_client_by_ws(self, websocket):
+        for client in self.clients:
+            if client["websocket"] == websocket:
+                return client
+        return None
+
+    async def set_player_ready(self, player):
+        if self.game:
+            raise Exception("Jogo já iniciou!")
+
+        player.is_ready = True
+
+        if len(self.clients) >= MIN_PLAYERS and all(
+            c["player"].is_ready for c in self.clients
+        ):
+            players = [c["player"] for c in self.clients]
+            self.game = Game(players)
+            await self.broadcast_game_state()
+        else:
+            await self.broadcast_room_update()
+
+    def is_player_turn(self, player):
+        return self.game and self.game.current_player == player
+
+    def reset_game(self):
+        self.game = None
+        self.clients = []
+
+    async def send(self, websocket, payload):
+        """Sends a JSON payload to a single websocket."""
+        try:
+            await websocket.send(json.dumps(payload))
+        except websockets.exceptions.ConnectionClosed:
+            # Handle case where client disconnects before message can be sent
+            pass
+
+    async def broadcast_room_update(self):
+        """Broadcasts the current state of the pre-game room to each player."""
+        tasks = []
+        for client in self.connected_clients:
+            payload = create_room_update_payload(self.clients, client["player"])
+            tasks.append(self.send(client["websocket"], payload))
+        await asyncio.gather(*tasks)
+
+    async def broadcast_game_state(self):
+        """Broadcasts the current, personalized state of the game to each player."""
+        tasks = []
+        for client in self.connected_clients:
+            payload = create_game_status_payload(
+                self.game, self.clients, client["player"]
+            )
+            if payload:
+                tasks.append(self.send(client["websocket"], payload))
+        await asyncio.gather(*tasks)
+
+
+class MessageHandler:
+    """Parses messages and calls the appropriate GameManager method."""
+
+    def __init__(self, game_manager: GameManager, player: Player, websocket):
+        self.manager = game_manager
+        self.player = player
+        self.websocket = websocket
+
+    async def handle_message(self, raw_message):
+        try:
+            message = json.loads(raw_message)
+            message_type = message.get("type")
+
+            if not message_type:
+                raise ValueError("Message type is missing")
+
+            # Game state validation
+            if self.manager.game and self.manager.game.is_paused:
+                raise Exception("Jogo pausado. Espere por uma nova conexão")
+            if not self.manager.game and message_type != "PLAYER_READY":
+                raise Exception("Você precisa estar pronto antes de começar a jogar!")
+            if (
+                self.manager.game
+                and not self.manager.is_player_turn(self.player)
+                and message_type in NOT_YOUR_TURN_EVENT_LIST
+            ):
+                raise Exception("Não é seu turno!")
+
+            # Route to the correct method
+            handler_method = getattr(
+                self, f"_handle_{message_type.lower()}", self._handle_unknown
+            )
+            await handler_method(message)
+
+        except json.JSONDecodeError:
+            payload = create_error_payload("Invalid JSON format")
+            await self.manager.send(self.websocket, payload)
+        except Exception as e:
+            payload = create_error_payload(str(e))
+            await self.manager.send(self.websocket, payload)
+
+    async def _handle_unknown(self, message):
+        raise ValueError(f"Unknown message type: {message.get('type')}")
+
+    async def _handle_player_ready(self, message):
+        await self.manager.set_player_ready(self.player)
+
+    async def _handle_play_card(self, message):
+        list_card_index = message["card_index"]
+        cards_played = [self.player.hand[index] for index in list_card_index]
+        if len(cards_played) > 2:
+            raise Exception("Não é possivel jogar mais do que 2 cartas simultâneas!")
+
+        card_value = message.get("card_value")
+        for card in cards_played:
+            if isinstance(card, Joker):
+                card.value = card_value
+
+        self.manager.game.play_card(*cards_played)
+
+        if self.manager.game.is_game_over:
+            self.manager.reset_game()
+            await self.manager.broadcast_room_update()
+        else:
+            await self.manager.broadcast_game_state()
+
+    async def _handle_draw_card(self, message):
+        self.manager.game.draw_card(self.player)
+        await self.manager.broadcast_game_state()
+
+    async def _handle_end_turn(self, message):
+        self.manager.game.end_turn()
+        await self.manager.broadcast_game_state()
+
+    async def _handle_punish(self, message):
+        player_index = message["player_index"]
+        target_player = self.manager.clients[player_index]["player"]
+        self.manager.game.punish_player(target_player, self.player)
+        await self.manager.broadcast_game_state()
+
+
+GAME_MANAGER = GameManager()
+
+
+async def main_handler(websocket):
+    """The main entry point for all websocket connections."""
+    player = await GAME_MANAGER.handle_connection(websocket)
+    if not player:
+        return
+
+    message_handler = MessageHandler(GAME_MANAGER, player, websocket)
 
     try:
         async for message in websocket:
-            try:
-                message = json.loads(message)
-                if message["type"] == "PLAYER_READY":
-                    if GLOBAL["game"]:
-                        raise Exception("Jogo já iniciou!")
-
-                    elif not player.is_ready:
-                        player.is_ready = True
-                        if len(GLOBAL["clients"]) >= MIN_PLAYERS:
-                            if all(c["player"].is_ready for c in GLOBAL["clients"]):
-                                players = [c["player"] for c in GLOBAL["clients"]]
-                                GLOBAL["game"] = Game(players)
-                                await send_update_game_status()
-
-                    await send_update_room()
-
-                elif GLOBAL["game"] and GLOBAL["game"].is_paused:
-                    raise Exception("Jogo pausado. Espere por uma nova conexão")
-
-                elif not GLOBAL["game"] and message["type"] != "PLAYER_READY":
-                    raise Exception(
-                        "Você precisa estar pronto antes de começar a jogar!"
-                    )
-
-                elif GLOBAL["game"] and player != GLOBAL["game"].current_player:
-                    if message["type"] in NOT_YOUR_TURN_EVENT_LIST:
-                        raise Exception("Não é seu turno!")
-
-                if message["type"] == "PLAY_CARD":
-                    list_card_index = message["card_index"]
-                    cards_played = [player.hand[index] for index in list_card_index]
-                    if len(cards_played) > 2:
-                        raise Exception(
-                            "Não é possivel jogar mais do que 2 cartas simultâneas!"
-                        )
-
-                    card_value = message.get("card_value")
-                    for card in cards_played:
-                        if isinstance(card, Joker):
-                            card.value = card_value
-
-                    GLOBAL["game"].play_card(*cards_played)
-
-                    if GLOBAL["game"].is_game_over:
-                        GLOBAL["game"] = None
-                        for client in GLOBAL["clients"]:
-                            client["player"].is_ready = False
-                        await send_update_room()
-                    await send_update_game_status()
-
-                if message["type"] == "DRAW_CARD":
-                    GLOBAL["game"].draw_card(player)
-                    await send_update_game_status()
-
-                if message["type"] == "END_TURN":
-                    GLOBAL["game"].end_turn()
-                    await send_update_game_status()
-
-                if message["type"] == "PAUSE_GAME":
-                    if disconnected_clients:
-                        raise Exception(
-                            "Não é possivel despausar/despausa o jogo enquanto existe jogadores faltando! Reinicie o jogo ou aguarde reconexão"
-                        )
-                    GLOBAL["game"].is_paused = not GLOBAL["game"].is_paused
-                    await send_update_game_status()
-
-                if message["type"] == "PUNISH":
-                    player_index = message["player_index"]
-                    target_player = GLOBAL["clients"][player_index]["player"]
-                    GLOBAL["game"].punish_player(target_player)
-                    await send_update_game_status()
-
-            except Exception as e:
-                await send_error_message(str(e), player)
-
-    except websockets.exceptions.ConnectionClosedOK:
-        print(f"Client {websocket.remote_address} disconnected gracefully.")
-    except websockets.exceptions.ConnectionClosedError as e:
-        print(f"Client {websocket.remote_address} disconnected with error: {e}")
+            await message_handler.handle_message(message)
+    except websockets.exceptions.ConnectionClosed:
+        print(f"Client disconnected.")
     finally:
-        disconnected_clients = [
-            x for x in GLOBAL["clients"] if x["websocket"] == websocket
-        ]
-        if GLOBAL["game"]:
-            if len(disconnected_clients) == len(GLOBAL["clients"]) - 1:
-                GLOBAL["game"] = None
-                GLOBAL["clients"] = []
-            else:
-                disconnected_clients[0]["websocket"] = None
-                GLOBAL["game"].is_paused = True
-                await send_update_game_status()
-
-        else:
-            GLOBAL["clients"].remove(disconnected_clients[0])
-            for client in GLOBAL["clients"]:
-                client["player"].is_ready = False
-                await send_update_room()
+        await GAME_MANAGER.handle_disconnection(websocket)
 
 
 async def main():
-    async with websockets.serve(handler, "localhost", 8765):
-        await asyncio.Future()
+    async with websockets.serve(main_handler, "localhost", 8765):
+        await asyncio.Future()  # run forever
 
 
 if __name__ == "__main__":
