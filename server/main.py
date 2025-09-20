@@ -67,12 +67,14 @@ class GameManager:
 
     def _add_new_player(self, websocket):
         player = Player(generate_player_name())
+        print(f"player {player.name} conectado")
         self.clients.append({"websocket": websocket, "player": player})
         return player
 
     async def handle_disconnection(self, websocket):
         """Handles a client disconnection."""
         client = self.find_client_by_ws(websocket)
+        print("player", client["player"].name, "disconnected")
         if not client:
             return
 
@@ -195,7 +197,7 @@ class MessageHandler:
         await self.manager.set_player_ready(self.player)
 
     async def _handle_play_card(self, message):
-        list_card_index = message["card_index"]
+        list_card_index = message["cards_index"]
         cards_played = [self.player.hand[index] for index in list_card_index]
         if len(cards_played) > 2:
             raise Exception("Não é possivel jogar mais do que 2 cartas simultâneas!")

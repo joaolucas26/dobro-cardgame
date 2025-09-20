@@ -152,19 +152,25 @@ class Game:
     def end_turn(self):
         self.current_player.ended_turn = True
         self._logging(f"Jogador {self.current_player.name} Encerrou o turno")
+
         if not self.current_player.played_turn:
             self._logging(
                 f"Jogador {self.current_player.name} não jogou nenhuma carta e pescou todo a pilha! ({len(self.stack)} cartas)"
             )
             self._draw_stack()
-
-        if self.current_player.played_turn:
-            current_player_index = self.players.index(self.current_player)
-            new_index = current_player_index + 1
-            if new_index >= len(self.players):
-                new_index = 0
             self.current_player.played_turn = False
-            self.current_player = self.players[new_index]
+            self.current_player.has_drew_card = False
+            self.current_player.ended_turn = False
+            return
+
+        current_player_index = self.players.index(self.current_player)
+        new_index = current_player_index + 1
+        if new_index >= len(self.players):
+            new_index = 0
+        self.current_player = self.players[new_index]
+        self.current_player.played_turn = False
+        self.current_player.has_drew_card = False
+        self.current_player.ended_turn = False
 
     def draw_card(self, player):
         if not self.deck.cards:

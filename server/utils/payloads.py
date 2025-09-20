@@ -22,7 +22,7 @@ def create_game_status_payload(game, clients, target_player):
         "current_player": game.current_player.name,
         "deck_size": len(game.deck.cards),
         "stack_top": game.stack_top,
-        "stack": [card.name for card in game.stack],
+        "stack_cards": [card.name for card in game.stack],
         "is_reversed": game.is_reversed,
         "current_round": game.current_round,
         "is_game_over": game.is_game_over,
@@ -35,6 +35,7 @@ def create_game_status_payload(game, clients, target_player):
             "name": client["player"].name,
             "hand_size": len(client["player"].hand),
             "stack_size": len(client["player"].stack),
+            "stack_cards": [card.name for card in client["player"].stack],
             "score": client["player"].score,
             "is_current": client["player"] == game.current_player,
             "is_punished": client["player"].is_punished,
@@ -49,6 +50,10 @@ def create_game_status_payload(game, clients, target_player):
         "name": target_player.name,
         "hand": [card.name for card in target_player.hand],
         "is_current": target_player == game.current_player,
+        "stack_size": len(target_player.stack),
+        "stack_cards": [card.name for card in target_player.stack],
+        "is_punished": target_player.is_punished,
+        "has_drew_card": target_player.has_drew_card,
     }
 
     # Combine all data for the final payload
