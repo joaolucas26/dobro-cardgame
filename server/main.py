@@ -14,7 +14,7 @@ from utils.payloads import (
 from utils.player_names_generator import generate_player_name
 
 
-class GameManager:
+class RoomManager:
     """Manages the state and logic of a single game room."""
 
     def __init__(self):
@@ -152,7 +152,7 @@ class GameManager:
 class MessageHandler:
     """Parses messages and calls the appropriate GameManager method."""
 
-    def __init__(self, game_manager: GameManager, player: Player, websocket):
+    def __init__(self, game_manager: RoomManager, player: Player, websocket):
         self.manager = game_manager
         self.player = player
         self.websocket = websocket
@@ -168,7 +168,7 @@ class MessageHandler:
             # Game state validation
             if self.manager.game and self.manager.game.is_paused:
                 raise Exception("Jogo pausado. Espere por uma nova conexão")
-            if not self.manager.game and message_type != "PLAYER_READY":
+            if not self.manager.game and message_type != "player_ready":
                 raise Exception("Você precisa estar pronto antes de começar a jogar!")
             if (
                 self.manager.game
@@ -230,7 +230,7 @@ class MessageHandler:
         await self.manager.broadcast_game_state()
 
 
-GAME_MANAGER = GameManager()
+GAME_MANAGER = RoomManager()
 
 
 async def main_handler(websocket):

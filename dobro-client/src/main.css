@@ -1,0 +1,15 @@
+:root {
+  --color-primary: #912f40;
+  --color-primary-accent: #702632;
+  --color-secondary: #0f7173;
+  --color-secondary-accent: #0c5455;
+  --color-background: #fff1f1;
+  --color-background-secondary: #c7bebe;
+  --color-text: #2a2a2a;
+  --color-text-accent: #e4e4e4;
+}
+
+body {
+  background-color: var(--color-background);
+  font-family: "Montserrat", sans-serif;
+}

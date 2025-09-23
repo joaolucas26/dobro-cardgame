@@ -1,0 +1,31 @@
+.card {
+  width: 5rem;
+  height: 8rem;
+  background: none;
+  border: none;
+  background-color: var(--color-primary);
+  color: var(--color-text-accent);
+  border-radius: 0.5rem;
+  font-weight: bold;
+  padding: 0.5rem;
+  font-size: 2rem;
+  cursor: pointer;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  &:enabled:hover {
+    background-color: var(--color-primary-accent);
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  &[data-selected="true"] {
+    background-color: var(--color-secondary);
+    &:enabled:hover {
+      background-color: var(--color-secondary-accent);
+    }
+  }
+}

@@ -41,4 +41,4 @@ MAX_ROUND: int = 3
 MIN_PLAYERS: int = 2
 MAX_PLAYERS: int = 6
 
-NOT_YOUR_TURN_EVENT_LIST = ["PLAY_CARD", "END_TURN"]
+NOT_YOUR_TURN_EVENT_LIST = ["play_card", "end_turn"]

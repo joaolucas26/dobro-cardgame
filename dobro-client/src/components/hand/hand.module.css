@@ -1,0 +1,8 @@
+.hand {
+  position: absolute;
+  left: 50%;
+  bottom: 2rem;
+  translate: -50%;
+  display: flex;
+  gap: 0.5rem;
+}
