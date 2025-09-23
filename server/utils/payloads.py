@@ -28,6 +28,7 @@ def create_game_status_payload(game, clients, target_player):
         "is_game_over": game.is_game_over,
         "logging": game.logs,
         "is_paused": game.is_paused,
+        "last_played_cards": game.last_played_cards,
     }
 
     players_data = [

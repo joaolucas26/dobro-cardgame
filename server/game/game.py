@@ -22,6 +22,7 @@ class Game:
         self.is_reversed = False
         self.logs = []
         self.is_paused = False
+        self.last_played_cards = []
 
         self._start_round()
 
@@ -141,10 +142,13 @@ class Game:
         self.current_player.played_turn = True
         self.current_player.remove_card(card)
         self.stack.insert(0, card)
+        self.last_played_cards = []
+        self.last_played_cards.append(card.name)
 
         if card2:
             self.current_player.remove_card(card2)
             self.stack.insert(0, card2)
+            self.last_played_cards.append(card2.name)
 
         if not self.current_player.hand:
             self._end_round()
@@ -161,6 +165,7 @@ class Game:
             self.current_player.played_turn = False
             self.current_player.has_drew_card = False
             self.current_player.ended_turn = False
+
             return
 
         current_player_index = self.players.index(self.current_player)
