@@ -18,9 +18,10 @@ export type GameState = {
   hand: string[];
   is_current: boolean;
   stack_size: number;
-  stack: string[];
+  stack_cards: string[];
   is_punished: boolean;
   has_drew_card: boolean;
+
   players: {
     name: string;
     hand_size: number;
@@ -34,12 +35,13 @@ export type GameState = {
   game: {
     current_player: string;
     deck_size: number;
-    deck_top: number;
-    stack: string[];
+    stack_top: number;
+    stack_cards: string[];
     is_reversed: boolean;
     current_round: number;
     is_game_over: boolean;
     logging: string[];
     is_paused: boolean;
+    last_played_cards: string[];
   };
 };
