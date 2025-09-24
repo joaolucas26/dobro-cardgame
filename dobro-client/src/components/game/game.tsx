@@ -15,10 +15,7 @@ type GameProps = {
 
 export function Game({ gameState, endTurn, drawCard, playCard, punishPlayer }: GameProps) {
   const [selectedCardsIndexes, setSelectedCardsIndexes] = useState<number[]>([]);
-  const selectedCardsNames = selectedCardsIndexes.map((index) => {
-    return gameState.hand[index];
-  });
-  console.log(gameState);
+  const [selectedJokerNumber, setSelectedJokerNumber] = useState<number>();
   return (
     <>
       {/* <pre>{JSON.stringify(gameState, null, 2)}</pre>? */}
@@ -37,6 +34,8 @@ export function Game({ gameState, endTurn, drawCard, playCard, punishPlayer }: G
             setSelectedCardsIndexes((prev) => [...prev, index]);
           }
         }}
+        selectedJokerNumber={selectedJokerNumber}
+        setSelectedJokerNumber={setSelectedJokerNumber}
       />
       <Logs logs={gameState.game.logging} />
       <PlayerAction
@@ -44,8 +43,7 @@ export function Game({ gameState, endTurn, drawCard, playCard, punishPlayer }: G
         endTurn={endTurn}
         isCurrent={gameState.is_current}
         play={() => {
-          const cardValue = selectedCardsNames.find((card) => card != "Joker");
-          playCard(selectedCardsIndexes[0], selectedCardsIndexes[1], Number(cardValue));
+          playCard(selectedCardsIndexes[0], selectedCardsIndexes[1], selectedJokerNumber);
           setSelectedCardsIndexes([]);
         }}
       />

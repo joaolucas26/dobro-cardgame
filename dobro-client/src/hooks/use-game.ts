@@ -45,6 +45,7 @@ export function useGame() {
   }, []);
 
   function send(data: any) {
+    console.log(data);
     if (!socketRef.current) return;
     socketRef.current.send(JSON.stringify(data));
   }
