@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card } from "../card";
 import styles from "./hand.module.css";
-import { JokerNumbers } from "../joker-number";
+import { JokerWheel } from "../joker-wheel/joker-wheel";
 
 type HandProps = {
   cards: string[];
@@ -25,23 +25,25 @@ export function Hand({ cards, selectedCardsIndexes, onSelectCard, setSelectedJok
   const isJokerSelected = selectedCardsNames.includes("Joker");
 
   return (
-    <div className={styles.hand}>
-      {isJokerSelected && <JokerNumbers onSelect={setSelectedJokerNumber} selectedNumber={selectedJokerNumber} />}
-      {cards.map((card, index) => {
-        const isSpecial = SPECIAL_CARDS_NAMES.includes(card);
-        const isSelected = selectedCardsIndexes.includes(index);
-        return (
-          <Card
-            key={index}
-            isSelected={isSelected}
-            name={card}
-            isDisabled={isMaxCardSelected || (isSpecial && isSomeCardSelected) || isSomeSpecialCardSelected}
-            onClick={() => {
-              onSelectCard(index, isSelected);
-            }}
-          />
-        );
-      })}
-    </div>
+    <>
+      {isJokerSelected && <JokerWheel onSelect={setSelectedJokerNumber} selectedNumber={selectedJokerNumber} />}
+      <div className={styles.hand}>
+        {cards.map((card, index) => {
+          const isSpecial = SPECIAL_CARDS_NAMES.includes(card);
+          const isSelected = selectedCardsIndexes.includes(index);
+          return (
+            <Card
+              key={index}
+              isSelected={isSelected}
+              name={card}
+              isDisabled={isMaxCardSelected || (isSpecial && isSomeCardSelected) || isSomeSpecialCardSelected}
+              onClick={() => {
+                onSelectCard(index, isSelected);
+              }}
+            />
+          );
+        })}
+      </div>
+    </>
   );
 }
