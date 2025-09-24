@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import styles from "./card.module.css";
-import { SlReload } from "react-icons/sl";
-import { SlActionRedo } from "react-icons/sl";
+import { SlActionRedo, SlReload } from "react-icons/sl";
+import { BsArrowClockwise, BsArrowCounterclockwise } from "react-icons/bs";
 import { TbJoker } from "react-icons/tb";
 
 type CardProps = {
@@ -16,6 +16,8 @@ const cardNameMap: Record<string, string | ReactElement> = {
   Joker: <TbJoker />,
   PassTurn: <SlActionRedo />,
   Reverse: <SlReload />,
+  directionRight: <BsArrowClockwise />,
+  directionLeft: <BsArrowCounterclockwise />,
 };
 
 export function Card({ isSelected, onClick, name, isDisabled, className }: CardProps) {

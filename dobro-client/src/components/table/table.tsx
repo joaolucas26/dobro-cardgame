@@ -5,9 +5,10 @@ type TableProps = {
   drawCard: () => void;
   stackTop: number;
   lastPlayedCards: string[];
+  reversed: boolean;
 };
 
-export function Table({ drawCard, stackTop, lastPlayedCards }: TableProps) {
+export function Table({ drawCard, stackTop, lastPlayedCards, reversed }: TableProps) {
   return (
     <div className={styles.tableTop}>
       <Card onClick={drawCard} isDisabled={false} name="+1" isSelected={false} />
@@ -19,6 +20,8 @@ export function Table({ drawCard, stackTop, lastPlayedCards }: TableProps) {
           })}
         </div>
       </div>
+      {}
+      <Card isDisabled={false} name={reversed ? "directionRight" : "directionLeft"} isSelected={false} />
     </div>
   );
 }

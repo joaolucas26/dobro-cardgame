@@ -19,7 +19,7 @@ export function Game({ gameState, endTurn, drawCard, playCard, punishPlayer }: G
   return (
     <>
       {/* <pre>{JSON.stringify(gameState, null, 2)}</pre>? */}
-      <Table drawCard={drawCard} stackTop={gameState.game.stack_top} lastPlayedCards={gameState.game.last_played_cards} />
+      <Table drawCard={drawCard} stackTop={gameState.game.stack_top} lastPlayedCards={gameState.game.last_played_cards} reversed={gameState.game.is_reversed} />
       <Hand
         cards={gameState.hand}
         selectedCardsIndexes={selectedCardsIndexes}
