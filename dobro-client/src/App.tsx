@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Toast } from "./components/toast";
-import { Game } from "./components/game";
+import { Game } from "./components/game/game";
 import { WaitingRoom } from "./components/waiting-room";
 
 export function App() {
