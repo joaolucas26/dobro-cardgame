@@ -2,7 +2,7 @@ import styles from "./button.module.css";
 
 type ButtonProps = {
   disabled?: boolean;
-  onClick: () => void;
+  onClick?: () => void;
 };
 
 export function Button({ disabled, onClick, children }: React.PropsWithChildren<ButtonProps>) {

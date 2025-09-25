@@ -3,6 +3,7 @@ import styles from "./card.module.css";
 import { SlActionRedo, SlReload } from "react-icons/sl";
 import { BsArrowClockwise, BsArrowCounterclockwise } from "react-icons/bs";
 import { TbJoker } from "react-icons/tb";
+import { FaExclamation } from "react-icons/fa";
 
 type CardProps = {
   isSelected: boolean;
@@ -18,6 +19,7 @@ const cardNameMap: Record<string, string | ReactElement> = {
   Reverse: <SlReload />,
   directionRight: <BsArrowClockwise />,
   directionLeft: <BsArrowCounterclockwise />,
+  Punish: <FaExclamation />,
 };
 
 export function Card({ isSelected, onClick, name, isDisabled, className }: CardProps) {
