@@ -35,7 +35,14 @@ export function Game({ gameState, endTurn, drawCard, playCard, punishPlayer }: G
         })}
       </div>
       {/* <pre>{JSON.stringify(gameState, null, 2)}</pre>? */}
-      <Table drawCard={drawCard} stackTop={gameState.game.stack_top} lastPlayedCards={gameState.game.last_played_cards} reversed={gameState.game.is_reversed} />
+      <Table
+        currentRound={gameState.game.current_round}
+        stackSize={gameState.game.stack_cards.length}
+        drawCard={drawCard}
+        stackTop={gameState.game.stack_top}
+        lastPlayedCards={gameState.game.last_played_cards}
+        reversed={gameState.game.is_reversed}
+      />
       <Hand
         isPunished={gameState.is_punished}
         playerScore={gameState.score}

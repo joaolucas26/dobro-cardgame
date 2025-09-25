@@ -25,3 +25,13 @@
   justify-content: center;
   align-items: center;
 }
+
+.smallCard {
+  top: 3rem;
+  width: 2.5rem;
+  height: 4rem;
+  font-size: 1rem;
+  border-radius: 0.25rem;
+  padding: 0.25rem;
+  gap: 1rem;
+}
