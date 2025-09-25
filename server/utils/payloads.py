@@ -49,6 +49,7 @@ def create_game_status_payload(game, clients, target_player):
     # This specific player's data
     player_specific_data = {
         "name": target_player.name,
+        "score": target_player.score,
         "hand": [card.name for card in target_player.hand],
         "is_current": target_player == game.current_player,
         "stack_size": len(target_player.stack),

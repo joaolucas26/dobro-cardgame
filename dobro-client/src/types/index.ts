@@ -16,6 +16,7 @@ export type GameState = {
   type: string;
   name: string;
   hand: string[];
+  score: number;
   is_current: boolean;
   stack_size: number;
   stack_cards: string[];

@@ -1,0 +1,51 @@
+.smallCard {
+  top: 3rem;
+  width: 2.5rem;
+  height: 4rem;
+  font-size: 1rem;
+  border-radius: 0.25rem;
+  padding: 0.25rem;
+  gap: 1rem;
+}
+
+.container {
+  display: flex;
+  direction: row;
+}
+
+.opponentContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0 1rem;
+}
+
+.opponent {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  transition: border 0.3s;
+  border: 2px solid transparent;
+}
+
+.current {
+  border: 5px solid var(--color-primary);
+}
+
+.punishbutton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.info {
+  top: 0.5rem;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+}

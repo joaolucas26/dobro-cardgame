@@ -1,5 +1,5 @@
-import { Button } from "./button";
-
+import { Button } from "../button";
+import styles from "./player-action.module.css";
 type PlayerActionProps = {
   selectedCardsIndexes: number[];
   isCurrent: boolean;
@@ -11,7 +11,7 @@ const MIN_SELECTED_CARDS = 1;
 
 export function PlayerAction({ selectedCardsIndexes, isCurrent, endTurn, play }: PlayerActionProps) {
   return (
-    <div>
+    <div className={styles.playeraction}>
       <Button disabled={selectedCardsIndexes.length < MIN_SELECTED_CARDS || !isCurrent} onClick={play}>
         Jogar
       </Button>
