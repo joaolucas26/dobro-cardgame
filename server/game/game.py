@@ -244,6 +244,8 @@ class Game:
     def _draw_stack(self):
         self.current_player.stack.extend(self.stack)
         self.stack = []
+        self.last_played_cards = []
+
         self.stack_top = 0
 
     def _end_game(self):
