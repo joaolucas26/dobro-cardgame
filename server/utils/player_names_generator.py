@@ -54,7 +54,7 @@ NEUTRAL_ADJECTIVES = [
     "Paia",
     "Ciclista",
     "Motorista",
-    "Captalista",
+    "Capitalista",
     "Comunista",
     "Socialista",
     "Anarquista",
