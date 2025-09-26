@@ -154,7 +154,6 @@ class Game:
             self._end_round()
 
     def end_turn(self):
-        self.current_player.ended_turn = True
         self._logging(f"Jogador {self.current_player.name} Encerrou o turno")
 
         if not self.current_player.played_turn:
@@ -168,13 +167,13 @@ class Game:
 
             return
 
+        self.current_player.ended_turn = True
         current_player_index = self.players.index(self.current_player)
         new_index = current_player_index + 1
         if new_index >= len(self.players):
             new_index = 0
         self.current_player = self.players[new_index]
         self.current_player.played_turn = False
-        self.current_player.has_drew_card = False
         self.current_player.ended_turn = False
 
     def draw_card(self, player):
@@ -195,10 +194,10 @@ class Game:
         self._logging(f"Jogador {player.name} pescou uma carta!")
 
     def punish_player(self, player_punished, player_accusation):
-        if not player_punished.ended_turn:
-            raise Exception("O jogador acusado ainda não terminou o turno!")
         if player_punished.has_drew_card:
             raise Exception("O jogador não pode ser punido. Sua mão esta completa!")
+        if not player_punished.ended_turn:
+            raise Exception("O jogador acusado ainda não terminou o turno!")
         if player_punished == player_accusation:
             raise Exception("Não é possivel punir a si mesmo!")
         if player_punished.is_punished:
@@ -216,6 +215,9 @@ class Game:
     def _end_round(self):
         self._calculate_player_score()
         self._logging(f"Rodada {self.current_round}/{rules.MAX_ROUND} Encerrada!")
+
+        for player in self.players:
+            player.is_punished = False
 
         if self.current_round == rules.MAX_ROUND:
             self._end_game()
