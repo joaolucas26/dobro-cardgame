@@ -195,13 +195,17 @@ class Game:
 
     def punish_player(self, player_punished, player_accusation):
         if player_punished.has_drew_card:
-            raise Exception("O jogador não pode ser punido. Sua mão esta completa!")
+            raise Exception(
+                f"O jogador {player_punished.name} não pode ser punido. Sua mão esta completa!"
+            )
         if not player_punished.ended_turn:
-            raise Exception("O jogador acusado ainda não terminou o turno!")
+            raise Exception(
+                f"O jogador {player_punished.name} ainda não terminou o turno!"
+            )
         if player_punished == player_accusation:
             raise Exception("Não é possivel punir a si mesmo!")
         if player_punished.is_punished:
-            raise Exception("Jogador já foi punido!")
+            raise Exception(f"Jogador {player_punished.name} já foi punido!")
 
         self._logging(
             f"Jogador Acusado! Jogador {self.current_player.name} puniu {player_punished.name} por não pescar carta!"

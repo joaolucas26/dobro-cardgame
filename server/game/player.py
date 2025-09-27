@@ -11,7 +11,7 @@ class Player:
         self.played_turn: bool = False
         self.is_ready: bool = False
         self.is_punished: bool = False
-        self.has_drew_card = True
+        self.has_drew_card = False
         self.ended_turn = False
 
     def add_card(self, card: Card):

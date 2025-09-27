@@ -17,7 +17,13 @@ export function App() {
 
   function renderContent() {
     if (gameState) {
-      return <Game drawCard={drawCard} endTurn={endTurn} gameState={gameState} playCard={playCard} punishPlayer={punishPlayer} />;
+      return (
+        <div>
+          <Game drawCard={drawCard} endTurn={endTurn} gameState={gameState} playCard={playCard} punishPlayer={punishPlayer} />
+          <pre>{JSON.stringify(errorState, null, 2)}</pre>
+          <pre>{JSON.stringify(gameState, null, 2)}</pre>
+        </div>
+      );
     }
 
     if (roomState) {

@@ -24,6 +24,7 @@ export type GameState = {
   has_drew_card: boolean;
 
   players: {
+    id: number;
     name: string;
     hand_size: number;
     stack_size: number;

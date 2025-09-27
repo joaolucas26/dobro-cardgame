@@ -29,12 +29,11 @@ export function Game({ gameState, endTurn, drawCard, playCard, punishPlayer }: G
               isPunished={p.is_punished}
               score={p.score}
               stackSize={p.stack_size}
-              OnSelect={() => punishPlayer(index)}
+              OnSelect={() => punishPlayer(p.id)}
             />
           );
         })}
       </div>
-      {/* <pre>{JSON.stringify(gameState, null, 2)}</pre>? */}
       <Table
         currentRound={gameState.game.current_round}
         stackSize={gameState.game.stack_cards.length}

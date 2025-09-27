@@ -33,6 +33,7 @@ def create_game_status_payload(game, clients, target_player):
 
     players_data = [
         {
+            "id": index,
             "name": client["player"].name,
             "hand_size": len(client["player"].hand),
             "stack_size": len(client["player"].stack),
@@ -43,7 +44,7 @@ def create_game_status_payload(game, clients, target_player):
             "has_drew_card": client["player"].has_drew_card,
             "is_ready": client["player"].is_ready,
         }
-        for client in clients
+        for index, client in enumerate(clients)
     ]
 
     # This specific player's data
