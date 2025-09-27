@@ -208,7 +208,7 @@ class Game:
             raise Exception(f"Jogador {player_punished.name} já foi punido!")
 
         self._logging(
-            f"Jogador Acusado! Jogador {self.current_player.name} puniu {player_punished.name} por não pescar carta!"
+            f"Jogador Acusado! Jogador {player_accusation.name} puniu {player_punished.name} por não pescar carta!"
         )
 
         player_punished.is_punished = True
@@ -231,8 +231,7 @@ class Game:
         self.stack = []
 
         for player in self.players:
-            player.hand = []
-            player.stack = []
+            player.reset_for_new_round()
 
         self.current_player = min(self.players, key=lambda player: player.score)
         self.stack_top = 0
