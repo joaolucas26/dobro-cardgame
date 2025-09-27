@@ -18,6 +18,9 @@ export function PlayerAction({ selectedCardsIndexes, isCurrent, endTurn, play }:
       <Button onClick={endTurn} disabled={!isCurrent}>
         Encerrar Turno
       </Button>
+      <Button onClick={endTurn} disabled={!isCurrent}>
+        Pescar Pilha
+      </Button>
     </div>
   );
 }
