@@ -1,0 +1,1 @@
+export { Opponents } from "./opponents";
