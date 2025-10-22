@@ -13,9 +13,9 @@ const START_ANGLE_OFFSET = -SEGMENT_ANGLE / 2;
 const WRAP_AROUND_ANGLE = Math.PI * 2 - SEGMENT_ANGLE / 2;
 
 // Cores
-const PRIMARY_COLOR = "#912f40";
-const PRIMARY_ACCENT = "#702632";
-const CENTER_COLOR = "#fff1f1";
+const PRIMARY_COLOR = "#5e239d";
+const PRIMARY_ACCENT = "#311350";
+const CENTER_COLOR = "#deeef1";
 const TEXT_COLOR = "#e4e4e4";
 const SECONDARY_COLOR = "#0f7173";
 const SECONDARY_ACCENT = "#0c5455";

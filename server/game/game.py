@@ -114,10 +114,14 @@ class Game:
         self.current_player.ended_turn = False
 
         if isinstance(card, Reverse):
+            self._logging(
+                f"Jogador {self.current_player.name} Reverteu a ordem do jogo!"
+            )
             self.players.reverse()
             self.is_reversed = not self.is_reversed
 
         if isinstance(card, PassTurn):
+            self._logging(f"Jogador {self.current_player.name} Passou o turno!")
             pass
 
         if isinstance(card, NumberCard) or isinstance(card, Joker):
@@ -125,9 +129,9 @@ class Game:
             if card2:
                 if card.value == card2.value:
                     value = card.value + card2.value
-                    self._logging_play_card(card, card2)
+                    self._logging_play_number_card(card, card2)
             else:
-                self._logging_play_card(card)
+                self._logging_play_number_card(card)
 
             if value == self.stack_top:
                 self.stack_top *= 2
@@ -150,7 +154,7 @@ class Game:
             self.stack.insert(0, card2)
             self.last_played_cards.append(card2.name)
 
-        if not self.current_player.hand:
+        if not self.current_player.hand and len(self.deck.cards) == 0:
             self._end_round()
 
     def end_turn(self):
@@ -219,6 +223,7 @@ class Game:
     def _end_round(self):
         self._calculate_player_score()
         self._logging(f"Rodada {self.current_round}/{rules.MAX_ROUND} Encerrada!")
+        self._logging(f"Placar Atual: {self._get_scoreboard()}")
 
         for player in self.players:
             player.is_punished = False
@@ -271,7 +276,7 @@ class Game:
         message = f"{log_time.hour}:{log_time.minute} - {message}"
         self.logs.insert(0, message)
 
-    def _logging_play_card(self, card, card2=None):
+    def _logging_play_number_card(self, card, card2=None):
         if card2:
             if isinstance(card2, Joker):
                 self._logging(
@@ -291,3 +296,16 @@ class Game:
                 self._logging(
                     f"Jogador {self.current_player.name} jogou uma carta {card.name}!",
                 )
+
+    def _get_scoreboard(self):
+        scoreboard = sorted(self.players, key=lambda player: player.score, reverse=True)
+        return ", ".join(
+            [
+                (
+                    f"{player.name}: {player.score} ({len(player.stack)} cartas no stack)"
+                    if not player.is_punished
+                    else f"*Punido* {player.name}: {player.score} ({len(player.stack)} cartas no stack)"
+                )
+                for player in scoreboard
+            ]
+        )
