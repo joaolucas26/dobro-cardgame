@@ -1,8 +1,10 @@
 import asyncio
 import websockets
 import json
-import http
+import uvicorn
+from fastapi import FastAPI
 from typing import Optional, Tuple, Union
+import threading
 
 
 from game.player import Player
@@ -237,12 +239,15 @@ class MessageHandler:
 
 GAME_MANAGER = RoomManager()
 
+# Health Check Server (FastAPI)
+health_app = FastAPI()
 
-async def health_check(
-    path: str, request_headers: websockets.Headers
-) -> Optional[Tuple[http.HTTPStatus, websockets.Headers, bytes]]:
-    if path == "/health":
-        return http.HTTPStatus.OK, [], b"OK\n"
+@health_app.get("/health")
+def read_root():
+    return {"status": "OK"}
+
+def run_health_check_server():
+    uvicorn.run(health_app, host="0.0.0.0", port=8080, log_level="info")
 
 
 async def main_handler(websocket):
@@ -263,11 +268,15 @@ async def main_handler(websocket):
 
 
 async def main():
+    print("Main WebSocket server running on port 8765...")
     async with websockets.serve(
-        main_handler, "0.0.0.0", 8765, process_request=health_check
+        main_handler, "0.0.0.0", 8765
     ):
         await asyncio.Future()  # run forever
 
 
 if __name__ == "__main__":
+    health_thread = threading.Thread(target=run_health_check_server, daemon=True)
+    health_thread.start()
+
     asyncio.run(main())
