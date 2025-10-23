@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { RoomState, GameState, ErrorState } from "../types";
 
-const SERVER_URL = "ws://localhost:8765";
+const SERVER_URL = "wss://dobro.imbroglio.com.br";
 const TIMEOUT_LIMIT = 3000;
 export function useGame() {
   const [roomState, setRoomState] = useState<RoomState>();

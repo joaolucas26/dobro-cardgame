@@ -1,6 +1,9 @@
 import asyncio
 import websockets
 import json
+import http
+from typing import Optional, Tuple, Union
+
 
 from game.player import Player
 from game.game import Game
@@ -19,7 +22,7 @@ class RoomManager:
 
     def __init__(self):
         self.clients = []  # List of {'websocket': ws, 'player': player_obj}
-        self.game: Game | None = None
+        self.game: Union[Game, None] = None
 
     @property
     def connected_clients(self):
@@ -74,10 +77,12 @@ class RoomManager:
     async def handle_disconnection(self, websocket):
         """Handles a client disconnection."""
         client = self.find_client_by_ws(websocket)
-        print("player", client["player"].name, "disconnected")
         if not client:
+            print("Disconnected client not found.")
             return
 
+        print("player", client["player"].name, "disconnected")
+        
         # Set websocket to None to mark as disconnected
         client["websocket"] = None
 
@@ -233,6 +238,13 @@ class MessageHandler:
 GAME_MANAGER = RoomManager()
 
 
+async def health_check(
+    path: str, request_headers: websockets.Headers
+) -> Optional[Tuple[http.HTTPStatus, websockets.Headers, bytes]]:
+    if path == "/health":
+        return http.HTTPStatus.OK, [], b"OK\n"
+
+
 async def main_handler(websocket):
     """The main entry point for all websocket connections."""
     player = await GAME_MANAGER.handle_connection(websocket)
@@ -251,7 +263,9 @@ async def main_handler(websocket):
 
 
 async def main():
-    async with websockets.serve(main_handler, "0.0.0.0", 8765):
+    async with websockets.serve(
+        main_handler, "0.0.0.0", 8765, process_request=health_check
+    ):
         await asyncio.Future()  # run forever
 
 
